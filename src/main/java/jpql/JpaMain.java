@@ -10,6 +10,7 @@ public class JpaMain {
         EntityTransaction tx = em.getTransaction();
         tx.begin();
         try {
+/*
             Member member = new Member();
             member.setUsername("member1");
             member.setAge(10);
@@ -41,6 +42,23 @@ public class JpaMain {
             MemberDTO memberDTO = result.get(0);
             System.out.println("memberDTO.getUsername() = " + memberDTO.getUsername());
             System.out.println("memberDTO.getAge() = " + memberDTO.getAge());
+ */
+            for (int i = 0; i < 100; i++) {
+                Member member = new Member();
+                member.setUsername("member" + i);
+                member.setAge(i);
+                em.persist(member);
+            }
+
+            List<Member> result = em.createQuery("select m from Member m order by m.id desc", Member.class)
+                    .setFirstResult(0)
+                    .setMaxResults(10)
+                    .getResultList();
+            System.out.println(result.size());
+            for (Member member : result) {
+                System.out.println(member);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }finally {
