@@ -35,7 +35,12 @@ public class JpaMain {
                     .setParameter("username", "member1")
                     .getSingleResult();
             System.out.println("singleResult1.getUsername = " + singleResult1.getUsername());
-
+            //프로젝션
+            List<MemberDTO> result = em.createQuery("select new jpql.MemberDTO(m.username, m.age) from Member m", MemberDTO.class)
+                    .getResultList();
+            MemberDTO memberDTO = result.get(0);
+            System.out.println("memberDTO.getUsername() = " + memberDTO.getUsername());
+            System.out.println("memberDTO.getAge() = " + memberDTO.getAge());
         } catch (Exception e) {
             e.printStackTrace();
         }finally {
