@@ -43,14 +43,15 @@ public class JpaMain {
             System.out.println("memberDTO.getUsername() = " + memberDTO.getUsername());
             System.out.println("memberDTO.getAge() = " + memberDTO.getAge());
  */
-            for (int i = 0; i < 100; i++) {
+            // 페이징
+    /*        for (int i = 0; i < 100; i++) {
                 Member member = new Member();
                 member.setUsername("member" + i);
                 member.setAge(i);
                 em.persist(member);
             }
-
-            List<Member> result = em.createQuery("select m from Member m order by m.id desc", Member.class)
+            String query = "select m from Member m order by m.id desc";
+            List<Member> result = em.createQuery(query, Member.class)
                     .setFirstResult(0)
                     .setMaxResults(10)
                     .getResultList();
@@ -58,6 +59,24 @@ public class JpaMain {
             for (Member member : result) {
                 System.out.println(member);
             }
+    */
+            Team team = new Team();
+            team.setName("team1");
+            em.persist(team);
+            Member member = new Member();
+            member.setUsername("member1");
+            member.setAge(35);
+            member.changeTeam(team);
+            em.persist(member);
+
+            em.flush();
+            em.clear();
+
+            String query = "select m from Member m join m.team t where t.name = :teamName";
+            List<Member> result = em.createQuery(query, Member.class)
+                    .setParameter("teamName", "team1")
+                    .getResultList();
+//            System.out.println("result = " + result);
 
         } catch (Exception e) {
             e.printStackTrace();
