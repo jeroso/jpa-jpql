@@ -76,7 +76,7 @@ public class JpaMain {
             List<Member> result = em.createQuery(query, Member.class)
                     .setParameter("teamName", "team1")
                     .getResultList();
-//            System.out.println("result = " + result);
+            System.out.println("result = " + result);
 
         } catch (Exception e) {
             e.printStackTrace();
