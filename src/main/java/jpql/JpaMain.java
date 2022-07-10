@@ -66,17 +66,41 @@ public class JpaMain {
             Member member = new Member();
             member.setUsername("member1");
             member.setAge(35);
+            member.setType(MemberType.ADMIN);
             member.changeTeam(team);
             em.persist(member);
 
             em.flush();
             em.clear();
 
-            String query = "select m from Member m join m.team t where t.name = :teamName";
-            List<Member> result = em.createQuery(query, Member.class)
-                    .setParameter("teamName", "team1")
+//            String query = "select m from Member m join m.team t where t.name = :teamName";
+//            List<Member> result = em.createQuery(query, Member.class)
+//                    .setParameter("teamName", "team1")
+//                    .getResultList();
+//            System.out.println("result = " + result);
+
+//            String query = "select m.username, 'HELLO', TRUE from Member m " +
+////                    "where m.type= jpql.MemberType.ADMIN";
+//                    "where m.type = :userType";
+//            List<Object[]> result = em.createQuery(query)
+//                    .setParameter("userType", MemberType.USER)
+//                    .getResultList();
+//
+//            for (Object[] objects : result) {
+//                System.out.println("objects[0] = " + objects[0]);
+//                System.out.println("objects[1] = " + objects[1]);
+//                System.out.println("objects[2] = " + objects[2]);
+//            }
+
+            String query =
+                    "select " +
+                            "case when m.age <= 10 then '학생요금' " +
+                            "     when m.age >= 60 then '경로요금' " +
+                            "     else '일반요금' " +
+                            "end " +
+                            "from Member m";
+            List<String> result = em.createQuery(query, String.class)
                     .getResultList();
-            System.out.println("result = " + result);
 
         } catch (Exception e) {
             e.printStackTrace();
