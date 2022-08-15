@@ -1,6 +1,7 @@
 package jpql;
 
 import javax.persistence.*;
+import java.awt.*;
 import java.util.List;
 
 public class JpaMain {
@@ -19,8 +20,11 @@ public class JpaMain {
             member2.setUsername("member2");
             member2.setAge(20);
             em.persist(member2);
-
-            // 타입정보가 명확할때 TypedQuery, 명확하지 않을때 Query
+*/
+            /**
+             * 타입정보가 명확할때 TypedQuery, 명확하지 않을때 Query
+             */
+/*
             TypedQuery<Member> query1 = em.createQuery("select m from Member m", Member.class);
             TypedQuery<String> query2 = em.createQuery("select m.username from Member m", String.class);
             Query query3 = em.createQuery("select m.username, m.age from Member m");
@@ -42,8 +46,10 @@ public class JpaMain {
             MemberDTO memberDTO = result.get(0);
             System.out.println("memberDTO.getUsername() = " + memberDTO.getUsername());
             System.out.println("memberDTO.getAge() = " + memberDTO.getAge());
- */
-            // 페이징
+*/
+            /**
+             * 페이징 처리 - setFirstResult, setMaxResult
+             */
     /*        for (int i = 0; i < 100; i++) {
                 Member member = new Member();
                 member.setUsername("member" + i);
@@ -60,19 +66,39 @@ public class JpaMain {
                 System.out.println(member);
             }
     */
-            Team team = new Team();
-            team.setName("team1");
-            em.persist(team);
-            Member member = new Member();
-            member.setUsername("member1");
-            member.setAge(35);
-            member.setType(MemberType.ADMIN);
-            member.changeTeam(team);
-            em.persist(member);
+            Team teamA = new Team();
+            teamA.setName("팀A");
+            em.persist(teamA);
+
+            Team teamB = new Team();
+            teamB.setName("팀B");
+            em.persist(teamB);
+
+            Member member1 = new Member();
+            member1.setUsername("회원1");
+//            member.setAge(35);
+//            member.setType(MemberType.ADMIN);
+            member1.changeTeam(teamA);
+            em.persist(member1);
+
+            Member member2 = new Member();
+            member2.setUsername("회원2");
+//            member.setAge(35);
+//            member.setType(MemberType.ADMIN);
+            member2.changeTeam(teamA);
+            em.persist(member2);
+
+            Member member3 = new Member();
+            member3.setUsername("회원3");
+            member3.changeTeam(teamB);
+            em.persist(member3);
 
             em.flush();
             em.clear();
 
+            /**
+             * 조인
+             */
 //            String query = "select m from Member m join m.team t where t.name = :teamName";
 //            List<Member> result = em.createQuery(query, Member.class)
 //                    .setParameter("teamName", "team1")
@@ -92,15 +118,80 @@ public class JpaMain {
 //                System.out.println("objects[2] = " + objects[2]);
 //            }
 
-            String query =
-                    "select " +
-                            "case when m.age <= 10 then '학생요금' " +
-                            "     when m.age >= 60 then '경로요금' " +
-                            "     else '일반요금' " +
-                            "end " +
-                            "from Member m";
-            List<String> result = em.createQuery(query, String.class)
+            /**
+             * case 식
+             */
+//            String query =
+//                    "select " +
+//                            "case when m.age <= 10 then '학생요금' " +
+//                            "     when m.age >= 60 then '경로요금' " +
+//                            "     else '일반요금' " +
+//                            "end " +
+//                            "from Member m";
+//            List<String> result = em.createQuery(query, String.class)
+//                    .getResultList();
+//            for (String s : result) {
+//                System.out.println("s = " + s);
+//            }
+
+            /**
+             * 조건식 case 식 - coalesce, nullif
+             */
+//            String query = "select coalesce(m.username,'이름 없는 회원') from Member m";
+//            String query = "select nullif(m.username,'관리자') from Member m";
+//            List<String> result = em.createQuery(query, String.class)
+//                    .getResultList();
+//            for (String s : result) {
+//                System.out.println("s = " + s);
+//            }
+
+            /**
+             * JPQL 기본 함수 - concat, substring, trim, lower,upper, length, locate, abs, sqrt, mod, size, index(JPA 용도)
+             */
+//            String query = "select concat('a','b') From Member m";
+/*
+            String query = "select locate('de','abcdefg') from Member m";   // 뒤에 인자에서 앞에 인자를 찾는다. 출력 : 4
+            List<Integer> result = em.createQuery(query, Integer.class)
                     .getResultList();
+            for (Integer integer : result) {
+                System.out.println("integer = " + integer);
+            }
+*/
+/*
+            String query = "select size(t.members) from Team t";
+
+            List<Integer> result = em.createQuery(query, Integer.class)
+                    .getResultList();
+            for (Integer integer : result) {
+                System.out.println("integer = " + integer);
+            }
+*/
+            /**
+             * join fetch : SQL 조인 종류 X
+             * JPQL에서 성능최적화를 위해 제공하는 기능 : 연관된 엔티티나 컬렉션을 SQL 한번에 함께 조회하는 기능
+             */
+
+            /**
+             * FetchType.Lazy
+             * 회원1, 팀A (SQL)
+             * 회원2, 팀A (1차 캐시)
+             * 회원3, 팀B (SQL)
+             * 회원이 100명인 경우 -> N + 1 문제
+             */
+            // String query = "select m from Member m";
+            /**
+             * N + 1 문제를 해결하기 위해 join fetch 를 사용 하여 한번의 쿼리로 가져옴
+             * join fetch 로 가져온 값은 프록시 데이터가 아닌 실제 데이터 이다.
+             */
+            String query = "select m from Member m join fetch m.team";
+            List<Member> result = em.createQuery(query, Member.class)
+                    .getResultList();
+
+            for (Member member : result) {
+                System.out.println("member : "  + member.getUsername());
+                System.out.println("team : " + member.getTeam().getName());
+            }
+
 
         } catch (Exception e) {
             e.printStackTrace();
